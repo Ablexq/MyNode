@@ -104,10 +104,67 @@ requestLayout会重新measure，layout，draw整个View树
 
 invalidate只会重新draw需要重新绘制的区域，不会measure和layout
 
+![](pics/绘制流程.png)
 
+# 自定义ViewGroup类
 
+1. 自定义CustomViewGroup继承ViewGroup
 
+2. 实现多个构造函数
 
+3. 重写onMeasure和onLayout
+
+（1）onMeasure 设置viewgroup的大小(特别考虑wrap_content，否则和match_parent的效果一致盛满)
+（2）onLayout 设置如何摆放子View
+（3）generateLayoutParams 设置LayoutParams
+
+[鸿洋：Android 手把手教您自定义ViewGroup（一）](https://blog.csdn.net/lmj623565791/article/details/38339817)
+
+[鸿洋：Android 自定义View (一)](https://blog.csdn.net/lmj623565791/article/details/24252901)
+
+[鸿洋：Android 自定义View (二) 进阶](https://blog.csdn.net/lmj623565791/article/details/24300125)
+
+[刘望舒 ：Android View体系（十一）自定义ViewGroup](http://liuwangshu.cn/application/view/11-custom-viewgroup.html)
+
+[open-Xu：自定义控件高手](https://blog.csdn.net/u010163442/column/info/14247)
+
+[自定义ViewGroup (1)支持margin，gravity以及水平，垂直排列 原 荐](https://my.oschina.net/fengheju/blog/196266)
+[自定义ViewGroup (2)支持滑动，并处理多指触摸可能产生的跳动问题 原 荐](https://my.oschina.net/fengheju/blog/196455)
+[自定义ViewGroup (3) 与子View之间 Touch Event的拦截与处理 原](https://my.oschina.net/fengheju/blog/196608)
+
+[android群英传：自定义ViewGroup](https://www.kancloud.cn/alex_wsc/heros/523265)
+
+[android自定义viewgroup初步之一----抽屉菜单](https://www.kancloud.cn/digest/wingscustomview/129798)
+
+[Android 自定义ViewGroup入门实践:理论](https://github.com/HotBitmapGG/AndroidInterview/blob/master/android/Android%20%E8%87%AA%E5%AE%9A%E4%B9%89ViewGroup%E5%85%A5%E9%97%A8%E5%AE%9E%E8%B7%B5.md)
+
+[菜鸟教程:1.3 自定义 ViewGroup](https://www.runoob.com/w3cnote/android-advance-viewgrouphtml.html)
+
+# measureChildren 与 measureChild
+
+measureChildren中会遍历执行measureChild
+
+``` 
+/**
+ * Ask all of the children of this view to measure themselves, taking into
+ * account both the MeasureSpec requirements for this view and its padding.
+ * We skip children that are in the GONE state The heavy lifting is done in
+ * getChildMeasureSpec.
+ *
+ * @param widthMeasureSpec The width requirements for this view
+ * @param heightMeasureSpec The height requirements for this view
+ */
+protected void measureChildren(int widthMeasureSpec, int heightMeasureSpec) {
+    final int size = mChildrenCount;
+    final View[] children = mChildren;
+    for (int i = 0; i < size; ++i) {
+        final View child = children[i];
+        if ((child.mViewFlags & VISIBILITY_MASK) != GONE) {
+            measureChild(child, widthMeasureSpec, heightMeasureSpec);
+        }
+    }
+}
+```
 
 
 

@@ -16,6 +16,11 @@ import java.util.ArrayList;
 
 public class CustomViewGroup extends ViewGroup {
 
+
+    // 计算所有child view 要占用的空间
+    int desireWidth = 0;
+    int desireHeight = 0;
+
     private String[] data1 = new String[]{"A1", "A2"};
     private String[] data2 = new String[]{"B1", "B2"};
     private String[] data31 = new String[]{"C1"};
@@ -47,11 +52,14 @@ public class CustomViewGroup extends ViewGroup {
     }
 
 
+    /**
+     * 负责设置子控件的测量模式和大小 根据所有子控件设置自己的宽和高
+     */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         System.out.println("===============onMeasure==================");
 
-        //ViewGroup的属性
+        // 获得它的父容器为它设置的测量模式和大小
         int sizeWidth = MeasureSpec.getSize(widthMeasureSpec);
         int modeWidth = MeasureSpec.getMode(widthMeasureSpec);
         int sizeHeight = MeasureSpec.getSize(heightMeasureSpec);
@@ -70,6 +78,7 @@ public class CustomViewGroup extends ViewGroup {
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
             View child = getChildAt(i);
+            //onMeasure 会走两次 第一次为0  第二个才有值
             System.out.println("前getMeasuredHeight==========" + child.getMeasuredHeight());
             System.out.println("前getMeasuredWidth===========" + child.getMeasuredWidth());
         }
@@ -78,64 +87,98 @@ public class CustomViewGroup extends ViewGroup {
 //        System.out.println("==============measureChildren===================");
 //        measureChildren(widthMeasureSpec, heightMeasureSpec);
 
+
         //测量child方式二
         for (int i = 0; i < childCount; i++) {
-            View child = getChildAt(i);
-            if (child.getVisibility() != View.GONE) {
-                System.out.println("==============measureChild===================");
-                System.out.println("后getMeasuredHeight==========" + child.getMeasuredHeight());
-                System.out.println("后getMeasuredWidth===========" + child.getMeasuredWidth());
-                measureChild(child, widthMeasureSpec, heightMeasureSpec);
+            View childView = getChildAt(i);
+            if (childView.getVisibility() != View.GONE) {
+                //onMeasure 会走两次 放在measureChild前面，只需要加一次
+                desireWidth += childView.getMeasuredWidth();
+                desireHeight += childView.getMeasuredHeight();
 
-                MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
-                int childWidth = child.getMeasuredWidth() + lp.leftMargin + lp.rightMargin;
-                int childHeight = child.getMeasuredHeight() + lp.topMargin + lp.bottomMargin;
+                measureChild(childView, widthMeasureSpec, heightMeasureSpec);
+                //onMeasure 会走两次 都有值
+                System.out.println("==============measureChild===================");
+                //获取view的测量宽高
+                System.out.println("后getMeasuredHeight==========" + childView.getMeasuredHeight());
+                System.out.println("后getMeasuredWidth===========" + childView.getMeasuredWidth());
+
+
+//                //报错：java.lang.ClassCastException: android.view.ViewGroup$LayoutParams cannot be cast to android.view.ViewGroup$MarginLayoutParams
+//                MarginLayoutParams lp = (MarginLayoutParams) childView.getLayoutParams();
+//                int childWidth = childView.getMeasuredWidth() + lp.leftMargin + lp.rightMargin;
+//                int childHeight = childView.getMeasuredHeight() + lp.topMargin + lp.bottomMargin;
+//                System.out.println("2childWidth onMeasure============" + childWidth);
+//                System.out.println("2childHeight onMeasure===========" + childHeight);
             }
         }
 
+        System.out.println("desireWidth1111333=============================" + desireWidth);
+        System.out.println("desireHeigh111333=============================" + desireHeight);
+
+        // count with padding
+        desireWidth += getPaddingLeft() + getPaddingRight();
+        desireHeight += getPaddingTop() + getPaddingBottom();
+        System.out.println("desireWidth2222333=============================" + desireWidth);
+        System.out.println("desireHeight2222333=============================" + desireHeight);
+
+        // see if the size is big enough
+        desireWidth = Math.max(desireWidth, getSuggestedMinimumWidth());
+        desireHeight = Math.max(desireHeight, getSuggestedMinimumHeight());
+        System.out.println("getSuggestedMinimumWidth3333=============================" + getSuggestedMinimumWidth());
+        System.out.println("getSuggestedMinimumHeight3333=============================" + getSuggestedMinimumHeight());
+
         //必须
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+//        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        //或者
+        System.out.println("desireWidth333=============================" + desireWidth);
+        System.out.println("desireHeight333=============================" + desireHeight);
+        setMeasuredDimension(modeWidth == MeasureSpec.EXACTLY ? sizeWidth : desireWidth, modeHeight == MeasureSpec.EXACTLY ? sizeHeight : desireHeight);
         //或者
 //        setMeasuredDimension(
-//                modeWidth == MeasureSpec.EXACTLY ? sizeWidth : childTotalWidth + getPaddingLeft() + getPaddingRight(),
-//                modeHeight == MeasureSpec.EXACTLY ? sizeHeight : childTotalHeight + getPaddingTop() + getPaddingBottom()
-//        );
+//                resolveSize(desireWidth, widthMeasureSpec),
+//                resolveSize(desireHeight, heightMeasureSpec));
 
     }
 
+    /**
+     * 管理子View显示的位置
+     */
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         System.out.println("===============onLayout==================");
         int childCount = getChildCount();
         System.out.println("childCount=========" + childCount);
         for (int i = 0; i < childCount; i++) {
-            View child = getChildAt(i);
-            int measuredWidth = child.getMeasuredWidth();
-            int measuredHeight = child.getMeasuredHeight();
-            System.out.println("width===============" + measuredWidth);
-            System.out.println("height===============" + measuredHeight);
-            switch (i) {
-                case 0:
-                    child.layout(100, 100, 100 + measuredWidth, 100 + measuredHeight);
-                    break;
-                case 1:
-                    child.layout(400, 100, 400 + measuredWidth, 100 + measuredHeight);
-                    break;
-                case 2:
-                    child.layout(50, 300, 50 + measuredWidth, 300 + measuredHeight);
-                    break;
-                case 3:
-                    child.layout(350, 300, 350 + measuredWidth, 300 + measuredHeight);
-                    break;
-                case 4:
-                    child.layout(200, 500, 200 + measuredWidth, 500 + measuredHeight);
-                    break;
+            View childView = getChildAt(i);
+            int measuredWidth = childView.getMeasuredWidth();
+            int measuredHeight = childView.getMeasuredHeight();
+            System.out.println("width" + i + "===============" + measuredWidth);
+            System.out.println("height" + i + "===============" + measuredHeight);
+            if (i == 0) {
+                childView.layout(100, 100, 100 + measuredWidth, 100 + measuredHeight);
+            } else if (i == 1) {
+                childView.layout(400, 100, 400 + measuredWidth, 100 + measuredHeight);
+            } else if (i == 2) {
+                childView.layout(50, 300, 50 + measuredWidth, 300 + measuredHeight);
+            } else if (i == 3) {
+                childView.layout(350, 300, 350 + measuredWidth, 300 + measuredHeight);
+            } else if (i == 4) {
+                childView.layout(200, 500, 200 + measuredWidth, 500 + measuredHeight);
             }
 
-//            child.layout(i * (getWidth() / 4),
+//            childView.layout(i * (getWidth() / 4),
 //                    t,
 //                    (i + 1) * (getWidth() / 4),
 //                    b);
+
+            LayoutParams layoutParams = childView.getLayoutParams();
+            System.out.println("2layoutParams==========================" + layoutParams.toString());//ViewGroup$LayoutParams
+//            MarginLayoutParams lp = (MarginLayoutParams) layoutParams;
+//            int childWidth = childView.getMeasuredWidth() + lp.leftMargin + lp.rightMargin;
+//            int childHeight = childView.getMeasuredHeight() + lp.topMargin + lp.bottomMargin;
+//            System.out.println("2childWidth============" + childWidth);
+//            System.out.println("2childHeight===========" + childHeight);
         }
     }
 
@@ -237,4 +280,25 @@ public class CustomViewGroup extends ViewGroup {
             }
         }
     }
+
+//    /**
+//     * 与当前ViewGroup对应的LayoutParams
+//     */
+//    @Override
+//    public LayoutParams generateLayoutParams(AttributeSet attrs) {
+//        System.out.println("==================1generateLayoutParams=======================");
+//        return new MarginLayoutParams(getContext(), attrs);
+//    }
+//
+//    @Override
+//    protected LayoutParams generateDefaultLayoutParams() {
+//        System.out.println("==================2generateLayoutParams=======================");
+//        return new MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+//    }
+//
+//    @Override
+//    protected LayoutParams generateLayoutParams(LayoutParams p) {
+//        System.out.println("==================3generateLayoutParams=======================");
+//        return new MarginLayoutParams(p);
+//    }
 }
