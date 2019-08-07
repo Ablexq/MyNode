@@ -140,6 +140,31 @@ invalidate只会重新draw需要重新绘制的区域，不会measure和layout
 
 [菜鸟教程:1.3 自定义 ViewGroup](https://www.runoob.com/w3cnote/android-advance-viewgrouphtml.html)
 
+
+# 横向滚动
+
+[自定义ViewGroup（1）--横向布局](https://blog.csdn.net/qq_18148011/article/details/53761543)
+
+[ScrollerLayout——可横向滚动的自定义viewgroup](https://blog.csdn.net/Android_Study_OK/article/details/51351736)
+
+[双向滑动悬停，无需嵌套，自定义 ViewGroup 完胜 ScrollView&ViewPager。](https://juejin.im/entry/592098870ce46300694dc6bb)
+
+[自定义viewgroup（5）--可滚动布局，GestureDetector手势监听](https://blog.csdn.net/qq_18148011/article/details/53761587)
+
+[详细讲解自定义ViewGroup+Scroller+VelocityTracker做出Launcher滑动](https://blog.csdn.net/u014649337/article/details/38302535)
+
+# 
+
+[Android开发实践：自定义ViewGroup的onLayout()分析](https://blog.51cto.com/ticktick/1542200)
+
+[Android-自定义ViewGroup-LayoutParams+Margin+Padding相关](https://zhuanlan.zhihu.com/p/47750879)
+
+[每日一问 自定义 ViewGroup 的时候，关于 LayoutParams 有哪些注意事项？](https://www.wanandroid.com/wenda/show/8603)
+
+[自定义 View 案例二：自定义简易 RelativeLayout](https://xiaozhuanlan.com/topic/4216350789)
+
+[Android API：自定义ViewGroup](https://blog.csdn.net/true100/article/details/51547573)
+
 # measureChildren 与 measureChild
 
 measureChildren中会遍历执行measureChild
