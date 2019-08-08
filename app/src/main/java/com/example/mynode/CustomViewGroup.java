@@ -12,7 +12,6 @@ import android.widget.Scroller;
 import android.widget.TextView;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.OptionalDataException;
 import java.util.ArrayList;
 
 public class CustomViewGroup extends ViewGroup {
@@ -232,6 +231,15 @@ public class CustomViewGroup extends ViewGroup {
                             screenWidth / 2 + lineLength3 + measuredWidth / 2, 500 + measuredHeight);
                 }
             }
+
+            final int finalI = i;
+            childView.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onClickNodeListener.onClickNode(finalI);
+                }
+            });
+
 
             LayoutParams layoutParams = childView.getLayoutParams();
             System.out.println("2layoutParams==========================" + layoutParams.toString());//ViewGroup$LayoutParams
@@ -568,6 +576,16 @@ public class CustomViewGroup extends ViewGroup {
         mLastYIntercept = y;
 
         return super.onInterceptTouchEvent(ev);
+    }
+
+    private OnClickNodeListener onClickNodeListener;
+
+    public void setClickListener(OnClickNodeListener onClickNodeListener) {
+        this.onClickNodeListener = onClickNodeListener;
+    }
+
+    public interface OnClickNodeListener {
+        void onClickNode(int postion);
     }
 
 }
