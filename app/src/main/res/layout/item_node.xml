@@ -11,7 +11,7 @@
             android:text="default"
             android:layout_width="45dp"
             android:gravity="center"
-            android:background="@color/colorPrimary"
+            android:background="@color/colorAccent"
             android:layout_height="45dp"/>
 
     <LinearLayout

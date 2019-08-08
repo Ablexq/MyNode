@@ -7,10 +7,12 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.*;
-import android.widget.RelativeLayout;
+import android.widget.ImageView;
 import android.widget.Scroller;
 import android.widget.TextView;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.OptionalDataException;
 import java.util.ArrayList;
 
 public class CustomViewGroup extends ViewGroup {
@@ -20,23 +22,51 @@ public class CustomViewGroup extends ViewGroup {
     int desireWidth = 0;
     int desireHeight = 0;
 
-    private Scroller scroller;//弹性滑动对象，用于实现View的弹性滑动
+    private Scroller mScroller;//弹性滑动对象，用于实现View的弹性滑动
     private VelocityTracker velocityTracker;//速度追踪，
 
-    private String[] data1 = new String[]{"A1", "A2"};
-    private String[] data2 = new String[]{"B1", "B2"};
-    private String[] data31 = new String[]{"C1"};
-    private String[] data32 = new String[]{"C1", "C2"};
-    private String[] data33 = new String[]{"C1", "C2", "C3"};
-    private String[][] total = {data1, data2, data31};
+    private GestureDetector detector;
+    private final static int TOUCH_STATE_REST = 0;
+    private final static int TOUCH_STATE_SCROLLING = 1;
+    private int mTouchSlop;
+    private int mTouchState = TOUCH_STATE_REST;
+
+    //    private String[] data1 = new String[]{"A1", "A2"};
+//    private String[] data2 = new String[]{"B1", "B2"};
+//    private String[] data3 = new String[]{"C1", "C2"};
+    //    private String[] data3 = new String[]{"C1", "C2", "C3"};
+//    private String[][] total = {};
     private int leftMargin = 100;
 
     private Context context;
     private String[][] totalList = new String[][]{};
-    private Paint paint;
+    private String[] data3 = new String[]{};
+
+    private Paint linePaint;
     private ArrayList<View> arrayList0 = new ArrayList<>();
     private ArrayList<View> arrayList1 = new ArrayList<>();
     private ArrayList<View> arrayList2 = new ArrayList<>();
+    /**
+     * 连线属性
+     */
+    private int lineColor;
+    private int lineWidth;
+
+    /**
+     * 节点属性
+     */
+    private int nodeWidth;
+    private int nodeHeight;
+    /**
+     * 节点与节点间中线长度
+     */
+    private int lineLength1;
+    private int lineHeight1;
+    private int lineLength2;
+    private int lineHeight2;
+    private int lineLength3;
+    private int lineHeight3;
+    private int lineHeight4;
 
     public CustomViewGroup(Context context) {
         this(context, null);
@@ -143,19 +173,15 @@ public class CustomViewGroup extends ViewGroup {
 
     }
 
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        // 初始化左右边界值
-        leftBorder = 0;
-        rightBorder = getMeasuredWidth();
-    }
-
     /**
      * 管理子View显示的位置
      */
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        if (totalList.length < 3 || totalList[0].length < 2 || totalList[1].length < 2 || totalList[2].length < 1) {
+            return;
+        }
+
         System.out.println("===============onLayout==================");
         int childCount = getChildCount();
         System.out.println("childCount=========" + childCount);
@@ -165,22 +191,47 @@ public class CustomViewGroup extends ViewGroup {
             int measuredHeight = childView.getMeasuredHeight();
             System.out.println("width" + i + "===============" + measuredWidth);
             System.out.println("height" + i + "===============" + measuredHeight);
-            if (i == 0) {
-                childView.layout(100, 100, 100 + measuredWidth, 100 + measuredHeight);
-            } else if (i == 1) {
-                childView.layout(400, 100, 2400 + measuredWidth, 100 + measuredHeight);
-            } else if (i == 2) {
-                childView.layout(50, 300, 50 + measuredWidth, 300 + measuredHeight);
-            } else if (i == 3) {
-                childView.layout(350, 300, 350 + measuredWidth, 300 + measuredHeight);
-            } else if (i == 4) {
-                childView.layout(200, 500, 200 + measuredWidth, 500 + measuredHeight);
+
+
+            if (i == 0) {//第一行 第一个
+                childView.layout(screenWidth / 2 + lineLength2 + measuredWidth / 2 - lineLength1 - measuredWidth, 100,
+                        screenWidth / 2 + lineLength2 + measuredWidth / 2 - lineLength1, 100 + measuredHeight);
+            } else if (i == 1) {//第一行 第二个
+                childView.layout(screenWidth / 2 + lineLength2 + measuredWidth / 2 + lineLength1, 100,
+                        screenWidth / 2 + lineLength2 + measuredWidth / 2 + lineLength1 + measuredWidth, 100 + measuredHeight);
+            } else if (i == 2) {//第二行 第一个
+                childView.layout(screenWidth / 2 - lineLength2 - measuredWidth, 300,
+                        screenWidth / 2 - lineLength2, 300 + measuredHeight);
+            } else if (i == 3) {//第二行 第二个
+                childView.layout(screenWidth / 2 + lineLength2, 300,
+                        screenWidth / 2 + lineLength2 + measuredWidth, 300 + measuredHeight);
             }
 
-//            childView.layout(i * (getWidth() / 4),
-//                    t,
-//                    (i + 1) * (getWidth() / 4),
-//                    b);
+            if (data3.length == 1) {
+                if (i == 4) {//第三行 中间
+                    childView.layout(screenWidth / 2 - measuredWidth / 2, 500,
+                            screenWidth / 2 + measuredWidth / 2, 500 + measuredHeight);
+                }
+            } else if (data3.length == 2) {
+                if (i == 4) {//第三行 左一
+                    childView.layout(screenWidth / 2 - lineLength3 - measuredWidth / 2, 500,
+                            screenWidth / 2 - lineLength3 + measuredWidth / 2, 500 + measuredHeight);
+                } else if (i == 5) {//第三行 中间
+                    childView.layout(screenWidth / 2 - measuredWidth / 2, 500,
+                            screenWidth / 2 + measuredWidth / 2, 500 + measuredHeight);
+                }
+            } else if (data3.length == 3) {
+                if (i == 4) {//第三行 左一
+                    childView.layout(screenWidth / 2 - lineLength3 - measuredWidth / 2, 500,
+                            screenWidth / 2 - lineLength3 + measuredWidth / 2, 500 + measuredHeight);
+                } else if (i == 5) {//第三行 中间
+                    childView.layout(screenWidth / 2 - measuredWidth / 2, 500,
+                            screenWidth / 2 + measuredWidth / 2, 500 + measuredHeight);
+                } else if (i == 6) {//第三行 右一
+                    childView.layout(screenWidth / 2 + lineLength3 - measuredWidth / 2, 500,
+                            screenWidth / 2 + lineLength3 + measuredWidth / 2, 500 + measuredHeight);
+                }
+            }
 
             LayoutParams layoutParams = childView.getLayoutParams();
             System.out.println("2layoutParams==========================" + layoutParams.toString());//ViewGroup$LayoutParams
@@ -193,55 +244,168 @@ public class CustomViewGroup extends ViewGroup {
     }
 
     private void init() {
-        paint = new Paint();
-        paint.setColor(Color.BLACK);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setStrokeWidth(5);
-//        setBackgroundColor(Color.parseColor("#ff8041"));
+        lineColor = Color.parseColor("#000000");
+        lineWidth = DensityUtil.dp2px(context, 2.5f);
+        linePaint = new Paint();
+        linePaint.setColor(lineColor);
+        linePaint.setStyle(Paint.Style.FILL);
+        linePaint.setStrokeWidth(lineWidth);
+        lineLength1 = DensityUtil.dp2px(context, 30);
+        lineLength2 = DensityUtil.dp2px(context, 60);
+        lineLength3 = DensityUtil.dp2px(context, 90);
 
-        scroller = new Scroller(getContext());
-        velocityTracker = VelocityTracker.obtain();
+        lineHeight1 = DensityUtil.dp2px(context, 60);
+        lineHeight2 = DensityUtil.dp2px(context, 60);
+        lineHeight3 = DensityUtil.dp2px(context, 15.5f);
+
+
+        nodeHeight = DensityUtil.dp2px(context, 45);
+        nodeWidth = DensityUtil.dp2px(context, 45);
 
         WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         DisplayMetrics outMetrics = new DisplayMetrics();
         manager.getDefaultDisplay().getMetrics(outMetrics);
         screenWidth = outMetrics.widthPixels;
 
-        addView(total);
+        mScroller = new Scroller(getContext());
+        velocityTracker = VelocityTracker.obtain();
+
+//        detector = new GestureDetector(this);
+//        ViewConfiguration configuration = ViewConfiguration.get(context);
+//        // 获得可以认为是滚动的距离
+//        mTouchSlop = configuration.getScaledTouchSlop();
+
+
+        addView(totalList);
     }
 
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
-        int childCount = getChildCount();
+        drawLine(canvas);
+    }
+
+    private void drawLine(Canvas canvas) {
+        if (totalList.length < 3 || totalList[0].length < 2 || totalList[1].length < 2 || totalList[2].length < 1) {
+            return;
+        }
         View childAt0 = getChildAt(0);
         View childAt1 = getChildAt(1);
-        int right0 = childAt0.getRight();
-        int height0 = childAt0.getHeight();
-        int top0 = childAt0.getTop();
-        int left1 = childAt1.getLeft();
-        System.out.println("===============dispatchDraw==================" + left1);
+        View childAt2 = getChildAt(2);
+        View childAt3 = getChildAt(3);
+        System.out.println("===============dispatchDraw==================" + childAt1.getLeft());
+        //绘制第一行横线
+        canvas.drawLine(childAt0.getRight(),
+                childAt0.getTop() + (childAt0.getHeight() >> 1),
+                childAt1.getLeft(),
+                childAt0.getTop() + (childAt0.getHeight() >> 1),
+                linePaint);
+        //绘制第一行竖线
+        canvas.drawLine((childAt1.getLeft() + childAt0.getRight()) >> 1,
+                childAt0.getTop() + (childAt0.getHeight() >> 1),
+                (childAt1.getLeft() + childAt0.getRight()) >> 1,
+                childAt3.getTop(),
+                linePaint);
+        //绘制第二行横线
+        canvas.drawLine(childAt2.getRight(),
+                childAt2.getTop() + (childAt2.getHeight() >> 1),
+                childAt3.getLeft(),
+                childAt2.getTop() + (childAt2.getHeight() >> 1),
+                linePaint);
 
-        canvas.drawLine(right0, top0 + height0 / 2, left1, top0 + height0 / 2, paint);
+        /*=================以上为默认=====================*/
+        if (data3.length == 1) {
+            //绘制第二行竖线
+            View childAt4 = getChildAt(4);
+            canvas.drawLine((childAt3.getLeft() + childAt2.getRight()) >> 1,
+                    childAt2.getTop() + (childAt2.getHeight() >> 1),
+                    (childAt3.getLeft() + childAt2.getRight()) >> 1,
+                    childAt4.getTop(),
+                    linePaint);
+        } else if (data3.length == 2) {
+            View childAt4 = getChildAt(4);
+            View childAt5 = getChildAt(5);
+
+            canvas.drawLine(screenWidth / 2 - lineLength3,
+                    childAt4.getTop() - lineHeight3,
+                    screenWidth / 2,
+                    childAt4.getTop() - lineHeight3,
+                    linePaint);
+
+            canvas.drawLine(screenWidth / 2 - lineLength3,
+                    childAt4.getTop() - lineHeight3,
+                    screenWidth / 2 - lineLength3,
+                    childAt4.getTop(),
+                    linePaint);
+
+            //绘制第二行竖线
+            canvas.drawLine((childAt3.getLeft() + childAt2.getRight()) >> 1,
+                    childAt2.getTop() + (childAt2.getHeight() >> 1),
+                    (childAt3.getLeft() + childAt2.getRight()) >> 1,
+                    childAt5.getTop(),
+                    linePaint);
+        } else if (data3.length == 3) {
+            View childAt4 = getChildAt(4);
+            View childAt5 = getChildAt(5);
+            View childAt6 = getChildAt(6);
+
+            //第三行左边
+            canvas.drawLine(screenWidth / 2 - lineLength3,
+                    childAt4.getTop() - lineHeight3,
+                    screenWidth / 2,
+                    childAt4.getTop() - lineHeight3,
+                    linePaint);
+
+            canvas.drawLine(screenWidth / 2 - lineLength3,
+                    childAt4.getTop() - lineHeight3,
+                    screenWidth / 2 - lineLength3,
+                    childAt4.getTop(),
+                    linePaint);
+
+            //绘制第二行竖线
+            canvas.drawLine((childAt3.getLeft() + childAt2.getRight()) >> 1,
+                    childAt2.getTop() + (childAt2.getHeight() >> 1),
+                    (childAt3.getLeft() + childAt2.getRight()) >> 1,
+                    childAt5.getTop(),
+                    linePaint);
+
+
+            //第三行右边
+            canvas.drawLine(screenWidth / 2 + lineLength3,
+                    childAt6.getTop() - lineHeight3,
+                    screenWidth / 2,
+                    childAt6.getTop() - lineHeight3,
+                    linePaint);
+
+            canvas.drawLine(screenWidth / 2 + lineLength3,
+                    childAt6.getTop() - lineHeight3,
+                    screenWidth / 2 + lineLength3,
+                    childAt6.getTop(),
+                    linePaint);
+        }
+
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         System.out.println("===============ondraw==================");
-
-
     }
 
     public void setTotalList(String[][] totalList) {
-//        System.out.println("===============set==================" + totalList.length);
-//
-//        this.totalList = totalList;
-//
-//        addView(totalList);
-
+        System.out.println("===============set==================" + totalList.length);
+        this.totalList = totalList;
+        if (totalList.length > 2) {
+            data3 = totalList[2];
+        }
+        addView(totalList);
+//        requestLayout();
     }
 
     private void addView(String[][] totalList) {
+        int childCount = getChildCount();
+        if (childCount > 0) {
+            removeAllViews();
+        }
         if (totalList.length > 2) {
             String[] level0 = totalList[0];
             String[] level1 = totalList[1];
@@ -258,80 +422,51 @@ public class CustomViewGroup extends ViewGroup {
             if (length0 > 0) {
                 for (int i = 0; i < length0; i++) {
                     System.out.println("0============" + level0[i]);
-                    LayoutParams layoutParams = new LayoutParams(100, 100);
-                    TextView textView = new TextView(context);
-                    textView.setGravity(Gravity.CENTER);
-                    textView.setTextColor(Color.WHITE);
-                    textView.setText(level0[i]);
-                    textView.setBackgroundColor(Color.parseColor("#999999"));
-                    addView(textView, layoutParams);
-                    arrayList0.add(textView);
+
+                    View itemView = addView(level0[i]);
+                    arrayList0.add(itemView);
                 }
             }
 
             if (level1.length > 0) {
                 for (int i = 0; i < level1.length; i++) {
                     System.out.println("1============" + level1[i]);
-                    LayoutParams layoutParams = new LayoutParams(100, 100);
-                    TextView textView = new TextView(context);
-                    textView.setGravity(Gravity.CENTER);
-                    textView.setTextColor(Color.WHITE);
-                    textView.setBackgroundColor(Color.parseColor("#333333"));
-                    textView.setText(level1[i]);
-                    addView(textView, layoutParams);
-                    arrayList1.add(textView);
+
+                    View itemView = addView(level1[i]);
+                    arrayList1.add(itemView);
                 }
             }
 
             if (level2.length > 0) {
                 for (int i = 0; i < level2.length; i++) {
                     System.out.println("2============" + level2[i]);
-                    LayoutParams layoutParams = new LayoutParams(100, 100);
-                    TextView textView = new TextView(context);
-                    textView.setGravity(Gravity.CENTER);
-                    textView.setTextColor(Color.WHITE);
-                    textView.setBackgroundColor(Color.parseColor("#666666"));
-                    textView.setText(level2[i]);
-                    addView(textView, layoutParams);
-                    arrayList2.add(textView);
+
+                    View itemView = addView(level2[i]);
+                    arrayList2.add(itemView);
                 }
             }
         }
+        invalidate();
     }
 
-//    /**
-//     * 与当前ViewGroup对应的LayoutParams
-//     */
-//    @Override
-//    public LayoutParams generateLayoutParams(AttributeSet attrs) {
-//        System.out.println("==================1generateLayoutParams=======================");
-//        return new MarginLayoutParams(getContext(), attrs);
-//    }
-//
-//    @Override
-//    protected LayoutParams generateDefaultLayoutParams() {
-//        System.out.println("==================2generateLayoutParams=======================");
-//        return new MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-//    }
-//
-//    @Override
-//    protected LayoutParams generateLayoutParams(LayoutParams p) {
-//        System.out.println("==================3generateLayoutParams=======================");
-//        return new MarginLayoutParams(p);
-//    }
+    @NotNull
+    private View addView(String text) {
+        View itemView = LayoutInflater.from(context).inflate(R.layout.item_node, null);
+        TextView textView = ((TextView) itemView.findViewById(R.id.tv));
+        ImageView iv1 = ((ImageView) itemView.findViewById(R.id.iv1));
+        ImageView iv2 = ((ImageView) itemView.findViewById(R.id.iv2));
+        ImageView iv3 = ((ImageView) itemView.findViewById(R.id.iv3));
+        textView.setGravity(Gravity.CENTER);
+        textView.setTextColor(Color.WHITE);
+        textView.setText(text);
+        textView.setBackgroundColor(Color.parseColor("#999999"));
+        addView(itemView);
+        return itemView;
+    }
+
 
     /*===========================================================================*/
 
-
-    /**
-     * 界面可滚动的左边界
-     */
-    private int leftBorder;
-
-    /**
-     * 界面可滚动的右边界
-     */
-    private int rightBorder;
     //屏幕宽度
     private int screenWidth;
 
@@ -345,17 +480,20 @@ public class CustomViewGroup extends ViewGroup {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 //如果动画还没有结束，再次点击时结束上次动画，即开启这次新的ACTION_DOWN的动画
-                if (!scroller.isFinished()) {
-                    scroller.abortAnimation();
+                if (!mScroller.isFinished()) {
+                    mScroller.abortAnimation();
                 }
                 break;
+
             case MotionEvent.ACTION_MOVE:
+                System.out.println("x6==================" + x);
+                System.out.println("getMeasuredWidth6==================" + getMeasuredWidth());
+                System.out.println("mLastX6==================" + mLastX);
                 int deltaX = x - mLastX;
                 scrollBy(-deltaX, 0);
                 break;
+
             case MotionEvent.ACTION_UP:
-
-
                 break;
         }
         mLastX = x;
@@ -366,14 +504,30 @@ public class CustomViewGroup extends ViewGroup {
 
     private void smoothScrollBy(int dx, int dy) {
         //从当前滑动的位置，平滑地过度到目标位置
-        scroller.startScroll(getScrollX(), getScrollY(), dx, dy, 500);
+        mScroller.startScroll(getScrollX(), getScrollY(), dx, dy, 500);
         invalidate();
     }
 
+    /**
+     * 弹性滑动到某一位置
+     *
+     * @param destX 目标X
+     * @param destY 目标Y
+     */
+    public void smoothScrollTo(int destX, int destY) {
+        int scrollX = getScrollX();
+        int scrollY = getScrollY();
+        int offsetX = destX - scrollX;
+        int offsetY = destY - scrollY;
+        mScroller.startScroll(scrollX, scrollY, offsetX, offsetY, 600);
+        invalidate();
+    }
+
+
     @Override
     public void computeScroll() {
-        if (scroller.computeScrollOffset()) {
-            scrollTo(scroller.getCurrX(), scroller.getCurrY());
+        if (mScroller.computeScrollOffset()) {
+            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
             postInvalidate();
         }
     }
@@ -394,8 +548,8 @@ public class CustomViewGroup extends ViewGroup {
         int y = (int) ev.getY();
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (!scroller.isFinished()) {
-                    scroller.abortAnimation();
+                if (!mScroller.isFinished()) {
+                    mScroller.abortAnimation();
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
