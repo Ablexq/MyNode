@@ -5,11 +5,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.util.DisplayMetrics;
+import android.view.*;
 import android.widget.RelativeLayout;
+import android.widget.Scroller;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -20,6 +19,9 @@ public class CustomViewGroup extends ViewGroup {
     // 计算所有child view 要占用的空间
     int desireWidth = 0;
     int desireHeight = 0;
+
+    private Scroller scroller;//弹性滑动对象，用于实现View的弹性滑动
+    private VelocityTracker velocityTracker;//速度追踪，
 
     private String[] data1 = new String[]{"A1", "A2"};
     private String[] data2 = new String[]{"B1", "B2"};
@@ -141,6 +143,14 @@ public class CustomViewGroup extends ViewGroup {
 
     }
 
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        // 初始化左右边界值
+        leftBorder = 0;
+        rightBorder = getMeasuredWidth();
+    }
+
     /**
      * 管理子View显示的位置
      */
@@ -158,7 +168,7 @@ public class CustomViewGroup extends ViewGroup {
             if (i == 0) {
                 childView.layout(100, 100, 100 + measuredWidth, 100 + measuredHeight);
             } else if (i == 1) {
-                childView.layout(400, 100, 400 + measuredWidth, 100 + measuredHeight);
+                childView.layout(400, 100, 2400 + measuredWidth, 100 + measuredHeight);
             } else if (i == 2) {
                 childView.layout(50, 300, 50 + measuredWidth, 300 + measuredHeight);
             } else if (i == 3) {
@@ -188,6 +198,14 @@ public class CustomViewGroup extends ViewGroup {
         paint.setStyle(Paint.Style.FILL);
         paint.setStrokeWidth(5);
 //        setBackgroundColor(Color.parseColor("#ff8041"));
+
+        scroller = new Scroller(getContext());
+        velocityTracker = VelocityTracker.obtain();
+
+        WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        manager.getDefaultDisplay().getMetrics(outMetrics);
+        screenWidth = outMetrics.widthPixels;
 
         addView(total);
     }
@@ -301,4 +319,101 @@ public class CustomViewGroup extends ViewGroup {
 //        System.out.println("==================3generateLayoutParams=======================");
 //        return new MarginLayoutParams(p);
 //    }
+
+    /*===========================================================================*/
+
+
+    /**
+     * 界面可滚动的左边界
+     */
+    private int leftBorder;
+
+    /**
+     * 界面可滚动的右边界
+     */
+    private int rightBorder;
+    //屏幕宽度
+    private int screenWidth;
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        velocityTracker.addMovement(event);
+
+        int x = (int) event.getX();
+        int y = (int) event.getY();
+
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                //如果动画还没有结束，再次点击时结束上次动画，即开启这次新的ACTION_DOWN的动画
+                if (!scroller.isFinished()) {
+                    scroller.abortAnimation();
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                int deltaX = x - mLastX;
+                scrollBy(-deltaX, 0);
+                break;
+            case MotionEvent.ACTION_UP:
+
+
+                break;
+        }
+        mLastX = x;
+        mLastY = y;
+        return true;
+    }
+
+
+    private void smoothScrollBy(int dx, int dy) {
+        //从当前滑动的位置，平滑地过度到目标位置
+        scroller.startScroll(getScrollX(), getScrollY(), dx, dy, 500);
+        invalidate();
+    }
+
+    @Override
+    public void computeScroll() {
+        if (scroller.computeScrollOffset()) {
+            scrollTo(scroller.getCurrX(), scroller.getCurrY());
+            postInvalidate();
+        }
+    }
+
+    //分别记录上次滑动的坐标, 仅用于onTouchEvent处理滑动使用
+    private int mLastX = 0;
+    private int mLastY = 0;
+
+    //分别记录上次滑动的坐标（onINterceptTouchEvent）
+    private int mLastXIntercept = 0;
+    private int mLastYIntercept = 0;
+
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+
+        int x = (int) ev.getX();
+        int y = (int) ev.getY();
+        switch (ev.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                if (!scroller.isFinished()) {
+                    scroller.abortAnimation();
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                int deltaX = x - mLastXIntercept;
+                int deltaY = y - mLastYIntercept;
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    return true;
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                break;
+        }
+        mLastX = x;
+        mLastY = y;
+        mLastXIntercept = x;
+        mLastYIntercept = y;
+
+        return super.onInterceptTouchEvent(ev);
+    }
+
 }
