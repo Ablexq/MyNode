@@ -8,7 +8,6 @@
             android:id="@+id/cvg"
             android:layout_width="match_parent"
             android:background="#ff8041"
-            android:paddingRight="20dp"
             android:layout_height="wrap_content"/>
 
     <LinearLayout
@@ -34,6 +33,31 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="3个孩子"/>
+    </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content">
+
+        <Button
+                android:id="@+id/btn4"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="4个孩子"/>
+        <Button
+                android:id="@+id/btn5"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="5个孩子"/>
+        <Button
+                android:id="@+id/btn_"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="10个孩子"/>
     </LinearLayout>
 
     <!--<android.support.v4.widget.NestedScrollView-->
