@@ -265,13 +265,13 @@ public class CustomViewGroup extends ViewGroup {
             //4 5 6789 10 11
             //4 5 6789 10 11 12
 
-            final int finalI = i;
-            childView.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onClickNodeListener.onClickNode(finalI);
-                }
-            });
+//            final int finalI = i;
+//            childView.setOnClickListener(new OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    onClickNodeListener.onClickNode(finalI);
+//                }
+//            });
 
 
             LayoutParams layoutParams = childView.getLayoutParams();
@@ -455,9 +455,9 @@ public class CustomViewGroup extends ViewGroup {
             removeAllViews();
         }
         if (totalList.length > 2) {
-            String[] level0 = totalList[0];
-            String[] level1 = totalList[1];
-            String[] level2 = totalList[2];
+            final String[] level0 = totalList[0];
+            final String[] level1 = totalList[1];
+            final String[] level2 = totalList[2];
 
             int length0 = level0.length;
             int length1 = level1.length;
@@ -467,38 +467,78 @@ public class CustomViewGroup extends ViewGroup {
             int max2 = Math.max(max1, length2);
             System.out.println("max2=====================" + max2);
 
-            if (length0 > 0) {
-                for (int i = 0; i < length0; i++) {
-                    System.out.println("0============" + level0[i]);
+            test(0, level0);
+            test(1, level1);
+            test(2, level2);
 
-                    View itemView = addView(level0[i]);
-                    arrayList0.add(itemView);
-                }
-            }
-
-            if (level1.length > 0) {
-                for (int i = 0; i < level1.length; i++) {
-                    System.out.println("1============" + level1[i]);
-
-                    View itemView = addView(level1[i]);
-                    arrayList1.add(itemView);
-                }
-            }
-
-            if (level2.length > 0) {
-                for (int i = 0; i < level2.length; i++) {
-                    System.out.println("2============" + level2[i]);
-
-                    View itemView = addView(level2[i]);
-                    arrayList2.add(itemView);
-                }
-            }
+//            if (length0 > 0) {
+//                for (int i = 0; i < length0; i++) {
+//                    System.out.println("0============" + level0[i]);
+//
+//                    View itemView = addView(level0[i]);
+//                    arrayList0.add(itemView);
+//
+//                    final int finalI = i;
+//                    itemView.setOnClickListener(new OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//                            onClickNodeListener.onClickNode(0, finalI, level0[finalI]);
+//                        }
+//                    });
+//
+//                }
+//            }
+//
+//            if (level1.length > 0) {
+//                for (int i = 0; i < level1.length; i++) {
+//                    System.out.println("1============" + level1[i]);
+//
+//                    View itemView = addView(level1[i]);
+//                    arrayList1.add(itemView);
+//
+//                    final int finalI = i;
+//                    itemView.setOnClickListener(new OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//                            onClickNodeListener.onClickNode(1, finalI, level1[finalI]);
+//                        }
+//                    });
+//
+//                }
+//            }
+//
+//            if (level2.length > 0) {
+//                for (int i = 0; i < level2.length; i++) {
+//                    System.out.println("2============" + level2[i]);
+//
+//                    View itemView = addView(level2[i]);
+//                    arrayList2.add(itemView);
+//
+//                    final int finalI = i;
+//                    itemView.setOnClickListener(new OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//                            onClickNodeListener.onClickNode(2, finalI, level2[finalI]);
+//                        }
+//                    });
+//                }
+//            }
         }
         invalidate();
     }
 
+    private void test(int row, String[] levelList) {
+        if (levelList.length > 0) {
+            for (int i = 0; i < levelList.length; i++) {
+                System.out.println("0============" + levelList[i]);
+                View itemView = addView(row, i, levelList[i]);
+                arrayList0.add(itemView);
+            }
+        }
+    }
+
     @NotNull
-    private View addView(String text) {
+    private View addView(final int row, final int column, final String text) {
         View itemView = LayoutInflater.from(context).inflate(R.layout.item_node, null);
         TextView textView = ((TextView) itemView.findViewById(R.id.tv));
         ImageView iv1 = ((ImageView) itemView.findViewById(R.id.iv1));
@@ -509,6 +549,36 @@ public class CustomViewGroup extends ViewGroup {
         textView.setText(text);
         textView.setBackgroundColor(Color.parseColor("#999999"));
         addView(itemView);
+
+        itemView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickNodeListener.onClickNode(row, column, text);
+            }
+        });
+
+        iv1.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickNodeListener.onClickNodeChild(0);
+            }
+        });
+
+        iv2.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickNodeListener.onClickNodeChild(1);
+            }
+        });
+
+        iv3.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickNodeListener.onClickNodeChild(2);
+            }
+        });
+
+
         return itemView;
     }
 
@@ -625,7 +695,8 @@ public class CustomViewGroup extends ViewGroup {
     }
 
     public interface OnClickNodeListener {
-        void onClickNode(int postion);
+        void onClickNode(int row, int column, String string);
+        void onClickNodeChild(int position);
     }
 
 }

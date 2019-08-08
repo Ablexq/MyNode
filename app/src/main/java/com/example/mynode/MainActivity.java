@@ -39,11 +39,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         customViewGroup.setTotalList(total1);
         customViewGroup.setClickListener(new CustomViewGroup.OnClickNodeListener() {
             @Override
-            public void onClickNode(int postion) {
+            public void onClickNode(int row, int column, String string) {
                 Toast.makeText(MainActivity.this,
-                        "第" + postion + "个childView",
+                        "第" + row + "行 , 第" + column + "列  , 数据为：" + string,
                         Toast.LENGTH_SHORT).show();
             }
+
+            @Override
+            public void onClickNodeChild(int position) {
+                Toast.makeText(MainActivity.this,
+                        "您点击了该标签的" + position,
+                        Toast.LENGTH_SHORT).show();
+            }
+
         });
         findViewById(R.id.btn1).setOnClickListener(this);
         findViewById(R.id.btn2).setOnClickListener(this);
