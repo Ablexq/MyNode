@@ -52,6 +52,17 @@
 # LayoutParams
 
 ``` 
+//支持layout_width和layout_height
+public LayoutParams(Context c, AttributeSet attrs) {
+    TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.ViewGroup_Layout);
+    setBaseAttributes(a,
+            R.styleable.ViewGroup_Layout_layout_width,
+            R.styleable.ViewGroup_Layout_layout_height);
+    a.recycle();
+}
+
+//布局文件被填充为对象的时候调用，是下面几个方法中最重要的，如果不重写它，我么布局文件中设置的布局参数都不能拿到。
+//其他几个方法我们最好也能重写一下
 public LayoutParams generateLayoutParams(AttributeSet attrs) {
     return new LayoutParams(getContext(), attrs);
 }
@@ -69,7 +80,92 @@ protected LayoutParams generateDefaultLayoutParams() {
 
 # MarginLayoutParams
 
+``` 
+//支持layout_marginxxx属性
+public MarginLayoutParams(Context c, AttributeSet attrs) {
+    super();
+
+    TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.ViewGroup_MarginLayout);
+    setBaseAttributes(a,
+            R.styleable.ViewGroup_MarginLayout_layout_width,
+            R.styleable.ViewGroup_MarginLayout_layout_height);
+
+    int margin = a.getDimensionPixelSize(
+            com.android.internal.R.styleable.ViewGroup_MarginLayout_layout_margin, -1);
+    if (margin >= 0) {
+        leftMargin = margin;
+        topMargin = margin;
+        rightMargin= margin;
+        bottomMargin = margin;
+    } else {
+        int horizontalMargin = a.getDimensionPixelSize(
+                R.styleable.ViewGroup_MarginLayout_layout_marginHorizontal, -1);
+        int verticalMargin = a.getDimensionPixelSize(
+                R.styleable.ViewGroup_MarginLayout_layout_marginVertical, -1);
+
+        if (horizontalMargin >= 0) {
+            leftMargin = horizontalMargin;
+            rightMargin = horizontalMargin;
+        } else {
+            leftMargin = a.getDimensionPixelSize(
+                    R.styleable.ViewGroup_MarginLayout_layout_marginLeft,
+                    UNDEFINED_MARGIN);
+            if (leftMargin == UNDEFINED_MARGIN) {
+                mMarginFlags |= LEFT_MARGIN_UNDEFINED_MASK;
+                leftMargin = DEFAULT_MARGIN_RESOLVED;
+            }
+            rightMargin = a.getDimensionPixelSize(
+                    R.styleable.ViewGroup_MarginLayout_layout_marginRight,
+                    UNDEFINED_MARGIN);
+            if (rightMargin == UNDEFINED_MARGIN) {
+                mMarginFlags |= RIGHT_MARGIN_UNDEFINED_MASK;
+                rightMargin = DEFAULT_MARGIN_RESOLVED;
+            }
+        }
+
+        startMargin = a.getDimensionPixelSize(
+                R.styleable.ViewGroup_MarginLayout_layout_marginStart,
+                DEFAULT_MARGIN_RELATIVE);
+        endMargin = a.getDimensionPixelSize(
+                R.styleable.ViewGroup_MarginLayout_layout_marginEnd,
+                DEFAULT_MARGIN_RELATIVE);
+
+        if (verticalMargin >= 0) {
+            topMargin = verticalMargin;
+            bottomMargin = verticalMargin;
+        } else {
+            topMargin = a.getDimensionPixelSize(
+                    R.styleable.ViewGroup_MarginLayout_layout_marginTop,
+                    DEFAULT_MARGIN_RESOLVED);
+            bottomMargin = a.getDimensionPixelSize(
+                    R.styleable.ViewGroup_MarginLayout_layout_marginBottom,
+                    DEFAULT_MARGIN_RESOLVED);
+        }
+
+        if (isMarginRelative()) {
+           mMarginFlags |= NEED_RESOLUTION_MASK;
+        }
+    }
+
+    final boolean hasRtlSupport = c.getApplicationInfo().hasRtlSupport();
+    final int targetSdkVersion = c.getApplicationInfo().targetSdkVersion;
+    if (targetSdkVersion < JELLY_BEAN_MR1 || !hasRtlSupport) {
+        mMarginFlags |= RTL_COMPATIBILITY_MODE_MASK;
+    }
+
+    // Layout direction is LTR by default
+    mMarginFlags |= LAYOUT_DIRECTION_LTR;
+
+    a.recycle();
+}
+```
+
 ![](pics/marginlayoutparams.png)
+
+
+我们可以选择继承ViewGroup.LayoutParams，
+这样的话我们的布局只是简单的支持layout_width和layout_height；
+也可以继承MarginLayoutParams，就能使用layout_marginxxx属性了。
 
 ``` 
 LayoutParams in ViewGroup (android.view)
@@ -90,6 +186,9 @@ LayoutParams in ViewGroup (android.view)
     LayoutParams in Gallery (android.widget)
 ```
 
+重写MarginLayoutParams的方法:
+
+![](pics/mar.png)
 
 [MarginLayoutParams--一个可以在代码中直接设置margin的方法](https://blog.csdn.net/u011374875/article/details/52150471)
 
@@ -184,9 +283,14 @@ invalidate只会重新draw需要重新绘制的区域，不会measure和layout
 
 [Android API：自定义ViewGroup](https://blog.csdn.net/true100/article/details/51547573)
 
-# measureChildren 与 measureChild
+# measureChildren 与 measureChild 与 measureChildWithMargins
+
+
+**measureChildren**
 
 measureChildren中会遍历执行measureChild
+
+内部调用 measureChild() 对每一个子视图进行 measure 操作
 
 ``` 
 /**
@@ -209,6 +313,157 @@ protected void measureChildren(int widthMeasureSpec, int heightMeasureSpec) {
     }
 }
 ```
+**measureChild** 
+
+measureChild会考虑child的【padding和width】，然后再会执行child.measure()方法
+
+为指定的子视图进行measure操作
+``` 
+/**
+ * Ask one of the children of this view to measure itself, taking into
+ * account both the MeasureSpec requirements for this view and its padding.
+ * The heavy lifting is done in getChildMeasureSpec.
+ *
+ * @param child The child to measure
+ * @param parentWidthMeasureSpec The width requirements for this view
+ * @param parentHeightMeasureSpec The height requirements for this view
+ */
+protected void measureChild(View child, int parentWidthMeasureSpec,
+        int parentHeightMeasureSpec) {
+    final LayoutParams lp = child.getLayoutParams();
+
+    final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,
+            mPaddingLeft + mPaddingRight, lp.width);
+    final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,
+            mPaddingTop + mPaddingBottom, lp.height);
+
+    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+}
+```
+
+**measureChildWithMargins**
+
+measureChild会考虑child的【【padding和width,尤其考虑了【margin】】】，然后再会执行child.measure()方法
+
+measure 时考虑把 margin 及  padding 也作为子视图大小的一部分
+
+``` 
+/**
+ * Ask one of the children of this view to measure itself, taking into
+ * account both the MeasureSpec requirements for this view and its padding
+ * and margins. The child must have MarginLayoutParams The heavy lifting is
+ * done in getChildMeasureSpec.
+ *
+ * @param child The child to measure
+ * @param parentWidthMeasureSpec The width requirements for this view
+ * @param widthUsed Extra space that has been used up by the parent
+ *        horizontally (possibly by other children of the parent)
+ * @param parentHeightMeasureSpec The height requirements for this view
+ * @param heightUsed Extra space that has been used up by the parent
+ *        vertically (possibly by other children of the parent)
+ */
+protected void measureChildWithMargins(View child,
+        int parentWidthMeasureSpec, int widthUsed,
+        int parentHeightMeasureSpec, int heightUsed) {
+    final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
+
+    final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,
+            mPaddingLeft + mPaddingRight + lp.leftMargin + lp.rightMargin
+                    + widthUsed, lp.width);
+    final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,
+            mPaddingTop + mPaddingBottom + lp.topMargin + lp.bottomMargin
+                    + heightUsed, lp.height);
+
+    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+}
+```
+
+# View.resolveSize 和 View.getDefaultSize
+
+**View.resolveSize**
+``` 
+/**
+ * Version of {@link #resolveSizeAndState(int, int, int)}
+ * returning only the {@link #MEASURED_SIZE_MASK} bits of the result.
+ */
+public static int resolveSize(int size, int measureSpec) {
+    return resolveSizeAndState(size, measureSpec, 0) & MEASURED_SIZE_MASK;
+}
+
+/**
+ * Utility to reconcile a desired size and state, with constraints imposed
+ * by a MeasureSpec. Will take the desired size, unless a different size
+ * is imposed by the constraints. The returned value is a compound integer,
+ * with the resolved size in the {@link #MEASURED_SIZE_MASK} bits and
+ * optionally the bit {@link #MEASURED_STATE_TOO_SMALL} set if the
+ * resulting size is smaller than the size the view wants to be.
+ *
+ * @param size How big the view wants to be.
+ * @param measureSpec Constraints imposed by the parent.
+ * @param childMeasuredState Size information bit mask for the view's
+ *                           children.
+ * @return Size information bit mask as defined by
+ *         {@link #MEASURED_SIZE_MASK} and
+ *         {@link #MEASURED_STATE_TOO_SMALL}.
+ */
+public static int resolveSizeAndState(int size, int measureSpec, int childMeasuredState) {
+    final int specMode = MeasureSpec.getMode(measureSpec);
+    final int specSize = MeasureSpec.getSize(measureSpec);
+    final int result;
+    switch (specMode) {
+        case MeasureSpec.AT_MOST:   //如果是AT_MOST，使用【测量值，期望值】中较小者
+            if (specSize < size) {
+                result = specSize | MEASURED_STATE_TOO_SMALL;
+            } else {
+                result = size;
+            }
+            break;
+        case MeasureSpec.EXACTLY:   //如果是EXACTLY，使用【测量值】
+            result = specSize;
+            break;
+        case MeasureSpec.UNSPECIFIED:
+        default:
+            result = size;          //其他使用【期望值】
+    }
+    return result | (childMeasuredState & MEASURED_STATE_MASK);
+}
+```
+**View.getDefaultSize**
+```
+/**
+ * Utility to return a default size. Uses the supplied size if the
+ * MeasureSpec imposed no constraints. Will get larger if allowed
+ * by the MeasureSpec.
+ *
+ * @param size Default size for this view
+ * @param measureSpec Constraints imposed by the parent
+ * @return The size this view should be.
+ */
+public static int getDefaultSize(int size, int measureSpec) {
+    int result = size;
+    int specMode = MeasureSpec.getMode(measureSpec);
+    int specSize = MeasureSpec.getSize(measureSpec);
+
+    switch (specMode) {
+    case MeasureSpec.UNSPECIFIED://如果是UNSPECIFIED，使用【期望值】
+        result = size;
+        break;
+    case MeasureSpec.AT_MOST://如果是AT_MOST或EXACTLY，使用【测量值】
+    case MeasureSpec.EXACTLY:
+        result = specSize;
+        break;
+    }
+    return result;
+}
+
+```
+
+
+
+
+
+
+
 
 
 

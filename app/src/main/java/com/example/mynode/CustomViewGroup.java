@@ -18,8 +18,8 @@ public class CustomViewGroup extends ViewGroup {
     int desireWidth = 0;
     int desireHeight = 0;
 
-    private Scroller mScroller;//弹性滑动对象，用于实现View的弹性滑动
-    private VelocityTracker velocityTracker;//速度追踪，
+//    private Scroller mScroller;//弹性滑动对象，用于实现View的弹性滑动
+//    private VelocityTracker velocityTracker;//速度追踪，
 
     private Context context;
     private String[][] totalList = new String[][]{};
@@ -164,8 +164,8 @@ public class CustomViewGroup extends ViewGroup {
         manager.getDefaultDisplay().getMetrics(outMetrics);
         screenWidth = outMetrics.widthPixels;
 
-        mScroller = new Scroller(getContext());
-        velocityTracker = VelocityTracker.obtain();
+//        mScroller = new Scroller(getContext());
+//        velocityTracker = VelocityTracker.obtain();
         addView(totalList);
     }
 
@@ -335,7 +335,7 @@ public class CustomViewGroup extends ViewGroup {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        velocityTracker.addMovement(event);
+//        velocityTracker.addMovement(event);
 
         int x = (int) event.getX();
         int y = (int) event.getY();
@@ -343,9 +343,9 @@ public class CustomViewGroup extends ViewGroup {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 //如果动画还没有结束，再次点击时结束上次动画，即开启这次新的ACTION_DOWN的动画
-                if (!mScroller.isFinished()) {
-                    mScroller.abortAnimation();
-                }
+//                if (!mScroller.isFinished()) {
+//                    mScroller.abortAnimation();
+//                }
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -361,13 +361,13 @@ public class CustomViewGroup extends ViewGroup {
         return true;
     }
 
-    @Override
-    public void computeScroll() {
-        if (mScroller.computeScrollOffset()) {
-            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
-            postInvalidate();
-        }
-    }
+//    @Override
+//    public void computeScroll() {
+//        if (mScroller.computeScrollOffset()) {
+//            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
+//            postInvalidate();
+//        }
+//    }
 
     //分别记录上次滑动的坐标, 仅用于onTouchEvent处理滑动使用
     private int mLastX = 0;
@@ -385,9 +385,9 @@ public class CustomViewGroup extends ViewGroup {
         int y = (int) ev.getY();
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (!mScroller.isFinished()) {
-                    mScroller.abortAnimation();
-                }
+//                if (!mScroller.isFinished()) {
+//                    mScroller.abortAnimation();
+//                }
                 break;
             case MotionEvent.ACTION_MOVE:
                 int deltaX = x - mLastXIntercept;
