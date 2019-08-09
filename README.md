@@ -49,8 +49,27 @@
     }
 ```
 
+# LayoutParams
+
+``` 
+public LayoutParams generateLayoutParams(AttributeSet attrs) {
+    return new LayoutParams(getContext(), attrs);
+}
+
+protected LayoutParams generateLayoutParams(ViewGroup.LayoutParams p) {
+    return p;
+}
+
+protected LayoutParams generateDefaultLayoutParams() {
+    return new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+}
+```
+![](pics/layoutparams.png)
+
 
 # MarginLayoutParams
+
+![](pics/marginlayoutparams.png)
 
 ``` 
 LayoutParams in ViewGroup (android.view)
