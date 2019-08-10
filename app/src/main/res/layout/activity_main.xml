@@ -6,9 +6,11 @@
 
     <com.example.mynode.CustomViewGroup
             android:id="@+id/cvg"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:background="#ff8041"
             android:paddingTop="20dp"
+            android:layout_margin="30dp"
+            android:layout_gravity="center_horizontal"
             android:paddingBottom="20dp"
             android:layout_height="wrap_content"/>
 
