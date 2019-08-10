@@ -15,8 +15,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class CustomViewGroup extends ViewGroup {
     // 计算所有child view 要占用的空间
-    int desireWidth = 0;
-    int desireHeight = 0;
+//    int desireWidth = 0;
+//    int desireHeight = 0;
 
 //    private Scroller mScroller;//弹性滑动对象，用于实现View的弹性滑动
 //    private VelocityTracker velocityTracker;//速度追踪，
@@ -41,7 +41,6 @@ public class CustomViewGroup extends ViewGroup {
     private int lineHeight2;
     private int lineLength3;
     private int lineHeight3;
-    private int marginTop;
 
     public CustomViewGroup(Context context) {
         this(context, null);
@@ -64,6 +63,8 @@ public class CustomViewGroup extends ViewGroup {
      */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int desireHeight = 0;
+        int desireWidth = 0;
         System.out.println("===============onMeasure==================");
         int sizeWidth = MeasureSpec.getSize(widthMeasureSpec);
         int modeWidth = MeasureSpec.getMode(widthMeasureSpec);
@@ -75,10 +76,11 @@ public class CustomViewGroup extends ViewGroup {
             View childView = getChildAt(i);
             if (childView.getVisibility() != View.GONE) {
                 desireWidth += childView.getMeasuredWidth();
-                desireHeight += childView.getMeasuredHeight();
                 measureChild(childView, widthMeasureSpec, heightMeasureSpec);
             }
         }
+        desireHeight += getChildAt(0).getMeasuredHeight() * 2 + lineHeight1 + lineHeight2;
+
         desireWidth += getPaddingLeft() + getPaddingRight();
         desireHeight += getPaddingTop() + getPaddingBottom();
         desireWidth = Math.max(desireWidth, getSuggestedMinimumWidth());
@@ -108,17 +110,17 @@ public class CustomViewGroup extends ViewGroup {
 
 
             if (i == 0) {//第一行 第一个
-                childView.layout(screenWidth / 2 + lineLength2 + measuredWidth / 2 - lineLength1 - measuredWidth, marginTop,
-                        screenWidth / 2 + lineLength2 + measuredWidth / 2 - lineLength1, marginTop + measuredHeight);
+                childView.layout(screenWidth / 2 + lineLength2 + measuredWidth / 2 - lineLength1 - measuredWidth, getPaddingTop(),
+                        screenWidth / 2 + lineLength2 + measuredWidth / 2 - lineLength1, getPaddingTop() + measuredHeight);
             } else if (i == 1) {//第一行 第二个
-                childView.layout(screenWidth / 2 + lineLength2 + measuredWidth / 2 + lineLength1, marginTop,
-                        screenWidth / 2 + lineLength2 + measuredWidth / 2 + lineLength1 + measuredWidth, marginTop + measuredHeight);
+                childView.layout(screenWidth / 2 + lineLength2 + measuredWidth / 2 + lineLength1, getPaddingTop(),
+                        screenWidth / 2 + lineLength2 + measuredWidth / 2 + lineLength1 + measuredWidth, getPaddingTop() + measuredHeight);
             } else if (i == 2) {//第二行 第一个
-                childView.layout(screenWidth / 2 - lineLength2 - measuredWidth, marginTop + measuredHeight / 2 + lineHeight1,
-                        screenWidth / 2 - lineLength2, marginTop + measuredHeight / 2 + lineHeight1 + measuredHeight);
+                childView.layout(screenWidth / 2 - lineLength2 - measuredWidth, getPaddingTop() + measuredHeight / 2 + lineHeight1,
+                        screenWidth / 2 - lineLength2, getPaddingTop() + measuredHeight / 2 + lineHeight1 + measuredHeight);
             } else if (i == 3) {//第二行 第二个
-                childView.layout(screenWidth / 2 + lineLength2, marginTop + measuredHeight / 2 + lineHeight1,
-                        screenWidth / 2 + lineLength2 + measuredWidth, marginTop + measuredHeight / 2 + lineHeight1 + measuredHeight);
+                childView.layout(screenWidth / 2 + lineLength2, getPaddingTop() + measuredHeight / 2 + lineHeight1,
+                        screenWidth / 2 + lineLength2 + measuredWidth, getPaddingTop() + measuredHeight / 2 + lineHeight1 + measuredHeight);
             }
             //===========================================
             if (data3.length > 0 && i > 3) {
@@ -130,13 +132,13 @@ public class CustomViewGroup extends ViewGroup {
                 }
 
                 if (i == middleIndex) {
-                    childView.layout(screenWidth / 2 - measuredWidth / 2, marginTop + measuredHeight + lineHeight1 + lineHeight2,
-                            screenWidth / 2 + measuredWidth / 2, marginTop + measuredHeight * 2 + lineHeight1 + lineHeight2);
+                    childView.layout(screenWidth / 2 - measuredWidth / 2, getPaddingTop() + measuredHeight + lineHeight1 + lineHeight2,
+                            screenWidth / 2 + measuredWidth / 2, getPaddingTop() + measuredHeight * 2 + lineHeight1 + lineHeight2);
                 } else {
                     childView.layout(screenWidth / 2 + lineLength3 * (i - middleIndex) - measuredWidth / 2,
-                            marginTop + measuredHeight + lineHeight1 + lineHeight2,
+                            getPaddingTop() + measuredHeight + lineHeight1 + lineHeight2,
                             screenWidth / 2 + lineLength3 * (i - middleIndex) + measuredWidth / 2,
-                            marginTop + measuredHeight * 2 + lineHeight1 + lineHeight2);
+                            getPaddingTop() + measuredHeight * 2 + lineHeight1 + lineHeight2);
                 }
             }
         }
@@ -157,7 +159,7 @@ public class CustomViewGroup extends ViewGroup {
         lineHeight2 = DensityUtil.dp2px(context, 75);
         lineHeight3 = DensityUtil.dp2px(context, 15.5f);
 
-        marginTop = DensityUtil.dp2px(context, 40f);
+//        marginTop = DensityUtil.dp2px(context, 40f);
 
         WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         DisplayMetrics outMetrics = new DisplayMetrics();

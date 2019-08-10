@@ -8,6 +8,8 @@
             android:id="@+id/cvg"
             android:layout_width="match_parent"
             android:background="#ff8041"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
             android:layout_height="wrap_content"/>
 
     <LinearLayout
