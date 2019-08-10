@@ -8,18 +8,14 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.*;
 import android.widget.ImageView;
-import android.widget.Scroller;
 import android.widget.TextView;
 import org.jetbrains.annotations.NotNull;
 
 
 public class CustomViewGroup extends ViewGroup {
-    // 计算所有child view 要占用的空间
-//    int desireWidth = 0;
-//    int desireHeight = 0;
-
-//    private Scroller mScroller;//弹性滑动对象，用于实现View的弹性滑动
-//    private VelocityTracker velocityTracker;//速度追踪，
+    private int screenWidth;
+    private int mLastX = 0;
+    private int mLastY = 0;
 
     private Context context;
     private String[][] totalList = new String[][]{};
@@ -75,19 +71,13 @@ public class CustomViewGroup extends ViewGroup {
         for (int i = 0; i < childCount; i++) {
             View childView = getChildAt(i);
             if (childView.getVisibility() != View.GONE) {
-//                desireWidth += childView.getMeasuredWidth();
                 measureChild(childView, widthMeasureSpec, heightMeasureSpec);
             }
         }
         desireHeight += getChildAt(0).getMeasuredHeight() * 2 + lineHeight1 + lineHeight2;
-
-//        desireWidth += getPaddingLeft() + getPaddingRight();
         desireHeight += getPaddingTop() + getPaddingBottom();
-//        desireWidth = Math.max(desireWidth, getSuggestedMinimumWidth());
         desireHeight = Math.max(desireHeight, getSuggestedMinimumHeight());
-
         desireWidth = screenWidth;
-
         setMeasuredDimension(modeWidth == MeasureSpec.EXACTLY ? sizeWidth : desireWidth,
                 modeHeight == MeasureSpec.EXACTLY ? sizeHeight : desireHeight);
     }
@@ -162,15 +152,11 @@ public class CustomViewGroup extends ViewGroup {
         lineHeight2 = DensityUtil.dp2px(context, 75);
         lineHeight3 = DensityUtil.dp2px(context, 15.5f);
 
-//        marginTop = DensityUtil.dp2px(context, 40f);
-
         WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         DisplayMetrics outMetrics = new DisplayMetrics();
         manager.getDefaultDisplay().getMetrics(outMetrics);
         screenWidth = outMetrics.widthPixels;
 
-//        mScroller = new Scroller(getContext());
-//        velocityTracker = VelocityTracker.obtain();
         addView(totalList);
     }
 
@@ -328,29 +314,16 @@ public class CustomViewGroup extends ViewGroup {
             }
         });
 
-
         return itemView;
     }
 
-
-    /*===========================================================================*/
-
-    //屏幕宽度
-    private int screenWidth;
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-//        velocityTracker.addMovement(event);
-
         int x = (int) event.getX();
         int y = (int) event.getY();
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                //如果动画还没有结束，再次点击时结束上次动画，即开启这次新的ACTION_DOWN的动画
-//                if (!mScroller.isFinished()) {
-//                    mScroller.abortAnimation();
-//                }
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -360,56 +333,13 @@ public class CustomViewGroup extends ViewGroup {
 
             case MotionEvent.ACTION_UP:
                 break;
+
+            default:
+                break;
         }
         mLastX = x;
         mLastY = y;
         return true;
-    }
-
-//    @Override
-//    public void computeScroll() {
-//        if (mScroller.computeScrollOffset()) {
-//            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
-//            postInvalidate();
-//        }
-//    }
-
-    //分别记录上次滑动的坐标, 仅用于onTouchEvent处理滑动使用
-    private int mLastX = 0;
-    private int mLastY = 0;
-
-    //分别记录上次滑动的坐标（onINterceptTouchEvent）
-    private int mLastXIntercept = 0;
-    private int mLastYIntercept = 0;
-
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-
-        int x = (int) ev.getX();
-        int y = (int) ev.getY();
-        switch (ev.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-//                if (!mScroller.isFinished()) {
-//                    mScroller.abortAnimation();
-//                }
-                break;
-            case MotionEvent.ACTION_MOVE:
-                int deltaX = x - mLastXIntercept;
-                int deltaY = y - mLastYIntercept;
-                if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                    return true;
-                }
-                break;
-            case MotionEvent.ACTION_UP:
-                break;
-        }
-        mLastX = x;
-        mLastY = y;
-        mLastXIntercept = x;
-        mLastYIntercept = y;
-
-        return super.onInterceptTouchEvent(ev);
     }
 
     private OnClickNodeListener onClickNodeListener;
