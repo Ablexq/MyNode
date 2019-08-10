@@ -6,7 +6,7 @@
 
     <com.example.mynode.CustomViewGroup
             android:id="@+id/cvg"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:background="#ff8041"
             android:paddingTop="20dp"
             android:paddingBottom="20dp"

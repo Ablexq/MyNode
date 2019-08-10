@@ -75,16 +75,19 @@ public class CustomViewGroup extends ViewGroup {
         for (int i = 0; i < childCount; i++) {
             View childView = getChildAt(i);
             if (childView.getVisibility() != View.GONE) {
-                desireWidth += childView.getMeasuredWidth();
+//                desireWidth += childView.getMeasuredWidth();
                 measureChild(childView, widthMeasureSpec, heightMeasureSpec);
             }
         }
         desireHeight += getChildAt(0).getMeasuredHeight() * 2 + lineHeight1 + lineHeight2;
 
-        desireWidth += getPaddingLeft() + getPaddingRight();
+//        desireWidth += getPaddingLeft() + getPaddingRight();
         desireHeight += getPaddingTop() + getPaddingBottom();
-        desireWidth = Math.max(desireWidth, getSuggestedMinimumWidth());
+//        desireWidth = Math.max(desireWidth, getSuggestedMinimumWidth());
         desireHeight = Math.max(desireHeight, getSuggestedMinimumHeight());
+
+        desireWidth = screenWidth;
+
         setMeasuredDimension(modeWidth == MeasureSpec.EXACTLY ? sizeWidth : desireWidth,
                 modeHeight == MeasureSpec.EXACTLY ? sizeHeight : desireHeight);
     }
@@ -110,17 +113,17 @@ public class CustomViewGroup extends ViewGroup {
 
 
             if (i == 0) {//第一行 第一个
-                childView.layout(screenWidth / 2 + lineLength2 + measuredWidth / 2 - lineLength1 - measuredWidth, getPaddingTop(),
-                        screenWidth / 2 + lineLength2 + measuredWidth / 2 - lineLength1, getPaddingTop() + measuredHeight);
+                childView.layout(getMeasuredWidth() / 2 + lineLength2 + measuredWidth / 2 - lineLength1 - measuredWidth, getPaddingTop(),
+                        getMeasuredWidth() / 2 + lineLength2 + measuredWidth / 2 - lineLength1, getPaddingTop() + measuredHeight);
             } else if (i == 1) {//第一行 第二个
-                childView.layout(screenWidth / 2 + lineLength2 + measuredWidth / 2 + lineLength1, getPaddingTop(),
-                        screenWidth / 2 + lineLength2 + measuredWidth / 2 + lineLength1 + measuredWidth, getPaddingTop() + measuredHeight);
+                childView.layout(getMeasuredWidth() / 2 + lineLength2 + measuredWidth / 2 + lineLength1, getPaddingTop(),
+                        getMeasuredWidth() / 2 + lineLength2 + measuredWidth / 2 + lineLength1 + measuredWidth, getPaddingTop() + measuredHeight);
             } else if (i == 2) {//第二行 第一个
-                childView.layout(screenWidth / 2 - lineLength2 - measuredWidth, getPaddingTop() + measuredHeight / 2 + lineHeight1,
-                        screenWidth / 2 - lineLength2, getPaddingTop() + measuredHeight / 2 + lineHeight1 + measuredHeight);
+                childView.layout(getMeasuredWidth() / 2 - lineLength2 - measuredWidth, getPaddingTop() + measuredHeight / 2 + lineHeight1,
+                        getMeasuredWidth() / 2 - lineLength2, getPaddingTop() + measuredHeight / 2 + lineHeight1 + measuredHeight);
             } else if (i == 3) {//第二行 第二个
-                childView.layout(screenWidth / 2 + lineLength2, getPaddingTop() + measuredHeight / 2 + lineHeight1,
-                        screenWidth / 2 + lineLength2 + measuredWidth, getPaddingTop() + measuredHeight / 2 + lineHeight1 + measuredHeight);
+                childView.layout(getMeasuredWidth() / 2 + lineLength2, getPaddingTop() + measuredHeight / 2 + lineHeight1,
+                        getMeasuredWidth() / 2 + lineLength2 + measuredWidth, getPaddingTop() + measuredHeight / 2 + lineHeight1 + measuredHeight);
             }
             //===========================================
             if (data3.length > 0 && i > 3) {
@@ -132,12 +135,12 @@ public class CustomViewGroup extends ViewGroup {
                 }
 
                 if (i == middleIndex) {
-                    childView.layout(screenWidth / 2 - measuredWidth / 2, getPaddingTop() + measuredHeight + lineHeight1 + lineHeight2,
-                            screenWidth / 2 + measuredWidth / 2, getPaddingTop() + measuredHeight * 2 + lineHeight1 + lineHeight2);
+                    childView.layout(getMeasuredWidth() / 2 - measuredWidth / 2, getPaddingTop() + measuredHeight + lineHeight1 + lineHeight2,
+                            getMeasuredWidth() / 2 + measuredWidth / 2, getPaddingTop() + measuredHeight * 2 + lineHeight1 + lineHeight2);
                 } else {
-                    childView.layout(screenWidth / 2 + lineLength3 * (i - middleIndex) - measuredWidth / 2,
+                    childView.layout(getMeasuredWidth() / 2 + lineLength3 * (i - middleIndex) - measuredWidth / 2,
                             getPaddingTop() + measuredHeight + lineHeight1 + lineHeight2,
-                            screenWidth / 2 + lineLength3 * (i - middleIndex) + measuredWidth / 2,
+                            getMeasuredWidth() / 2 + lineLength3 * (i - middleIndex) + measuredWidth / 2,
                             getPaddingTop() + measuredHeight * 2 + lineHeight1 + lineHeight2);
                 }
             }
@@ -225,23 +228,23 @@ public class CustomViewGroup extends ViewGroup {
                 } else {
                     View childAtX = getChildAt(i + 4);
                     //竖线
-                    canvas.drawLine(screenWidth / 2 + lineLength3 * (i + 4 - middleIndex),
+                    canvas.drawLine(getMeasuredWidth() / 2 + lineLength3 * (i + 4 - middleIndex),
                             childAtX.getTop() - lineHeight3,
-                            screenWidth / 2 + lineLength3 * (i + 4 - middleIndex),
+                            getMeasuredWidth() / 2 + lineLength3 * (i + 4 - middleIndex),
                             childAtX.getTop(),
                             linePaint);
                     if (i + 4 < middleIndex) {
                         //横线
-                        canvas.drawLine(screenWidth / 2 + lineLength3 * (i + 4 - middleIndex),
+                        canvas.drawLine(getMeasuredWidth() / 2 + lineLength3 * (i + 4 - middleIndex),
                                 childAtX.getTop() - lineHeight3,
-                                screenWidth / 2 + lineLength3 * (i + 4 - middleIndex + 1),
+                                getMeasuredWidth() / 2 + lineLength3 * (i + 4 - middleIndex + 1),
                                 childAtX.getTop() - lineHeight3,
                                 linePaint);
                     } else {
                         //横线
-                        canvas.drawLine(screenWidth / 2 + lineLength3 * (i + 4 - middleIndex),
+                        canvas.drawLine(getMeasuredWidth() / 2 + lineLength3 * (i + 4 - middleIndex),
                                 childAtX.getTop() - lineHeight3,
-                                screenWidth / 2 + lineLength3 * (i + 4 - middleIndex - 1),
+                                getMeasuredWidth() / 2 + lineLength3 * (i + 4 - middleIndex - 1),
                                 childAtX.getTop() - lineHeight3,
                                 linePaint);
                     }
