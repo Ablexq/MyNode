@@ -6,9 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Toast;
 
-import java.util.Arrays;
-import java.util.Random;
-
+// 亲属关系图谱 KinshipMap
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String TAG = MainActivity.class.getSimpleName();
     private String[] data1 = new String[]{"A1", "A2"};
@@ -28,16 +26,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String[][] total3 = {data1, data2, data33};
     private String[][] total4 = {data1, data2, data34};
     private String[][] total5 = {data1, data2, data35};
-    private CustomViewGroup customViewGroup;
+    private KinshipView kinshipView;
     private String[][] total10 = new String[][]{data1, data2, data40};
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        customViewGroup = (CustomViewGroup) this.findViewById(R.id.cvg);
-        customViewGroup.setTotalList(total1);
-        customViewGroup.setClickListener(new CustomViewGroup.OnClickNodeListener() {
+        kinshipView = (KinshipView) this.findViewById(R.id.cvg);
+        kinshipView.setTotalList(total1);
+        kinshipView.setClickListener(new KinshipView.OnClickNodeListener() {
             @Override
             public void onClickNode(int row, int column, String string) {
                 Toast.makeText(MainActivity.this,
@@ -51,7 +49,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         "您点击了该标签的" + position,
                         Toast.LENGTH_SHORT).show();
             }
-
         });
         findViewById(R.id.btn1).setOnClickListener(this);
         findViewById(R.id.btn2).setOnClickListener(this);
@@ -65,22 +62,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn1:
-                customViewGroup.setTotalList(total1);
+                kinshipView.setTotalList(total1);
                 break;
             case R.id.btn2:
-                customViewGroup.setTotalList(total2);
+                kinshipView.setTotalList(total2);
                 break;
             case R.id.btn3:
-                customViewGroup.setTotalList(total3);
+                kinshipView.setTotalList(total3);
                 break;
             case R.id.btn4:
-                customViewGroup.setTotalList(total4);
+                kinshipView.setTotalList(total4);
                 break;
             case R.id.btn5:
-                customViewGroup.setTotalList(total5);
+                kinshipView.setTotalList(total5);
                 break;
             case R.id.btn_:
-                customViewGroup.setTotalList(total10);
+                kinshipView.setTotalList(total10);
                 break;
         }
     }

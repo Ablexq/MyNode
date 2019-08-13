@@ -1,6 +1,7 @@
 package com.example.mynode;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -11,8 +12,45 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import org.jetbrains.annotations.NotNull;
 
-
-public class CustomViewGroup extends ViewGroup {
+/**
+ *     private String[] data1 = new String[]{"A1", "A2"};
+ *     private String[] data2 = new String[]{"B1", "B2"};
+ *     private String[] data31 = new String[]{"C1"};
+ *     private String[][] total1 = {data1, data2, data31};
+ *     KinshipView  kinshipView = (KinshipView) this.findViewById(R.id.cvg);
+ *     kinshipView.setTotalList(total1);
+ *
+ *     <declare-styleable name="KinshipView">
+ *         <attr name="lineColor" format="color|reference"/>
+ *         <attr name="lineWidth" format="dimension|reference"/>
+ *         <attr name="lineLengthTop" format="dimension|reference"/>
+ *         <attr name="lineHeightTop" format="dimension|reference"/>
+ *         <attr name="lineLengthMiddle" format="dimension|reference"/>
+ *         <attr name="lineHeightMiddle" format="dimension|reference"/>
+ *         <attr name="lineLengthBottom" format="dimension|reference"/>
+ *         <attr name="lineHeightBottom" format="dimension|reference"/>
+ *     </declare-styleable>
+ *
+ *         <xxx.xxx.xxx.KinshipView
+ *             android:id="@+id/cvg"
+ *             android:layout_width="match_parent"
+ *             android:background="#ff8041"
+ *             android:paddingTop="20dp"
+ *             android:layout_margin="30dp"
+ *             android:layout_gravity="center_horizontal"
+ *             android:paddingBottom="20dp"
+ *             app:lineColor="@color/colorPrimary"
+ *             app:lineWidth="2dp"
+ *             app:lineLengthTop="30dp"
+ *             app:lineLengthMiddle="@dimen/dp_60"
+ *             app:lineLengthBottom="@dimen/dp_90"
+ *             app:lineHeightTop="@dimen/dp_60"
+ *             app:lineHeightMiddle="75dp"
+ *             app:lineHeightBottom="15.5dp"
+ *             android:layout_height="wrap_content"/>
+ *
+ */
+public class KinshipView extends ViewGroup {
     private int screenWidth;
     private int mLastX = 0;
     private int mLastY = 0;
@@ -21,16 +59,10 @@ public class CustomViewGroup extends ViewGroup {
     private String[][] totalList = new String[][]{};
     private String[] data3 = new String[]{};
 
+    /**
+     * 节点连接线
+     */
     private Paint linePaint;
-    /**
-     * 连线属性
-     */
-    private int lineColor;
-    private int lineWidth;
-
-    /**
-     * 节点与节点间中线长度
-     */
     private int lineLength1;
     private int lineHeight1;
     private int lineLength2;
@@ -38,30 +70,24 @@ public class CustomViewGroup extends ViewGroup {
     private int lineLength3;
     private int lineHeight3;
 
-    public CustomViewGroup(Context context) {
+    public KinshipView(Context context) {
         this(context, null);
     }
 
-    public CustomViewGroup(Context context, AttributeSet attrs) {
+    public KinshipView(Context context, AttributeSet attrs) {
         this(context, attrs, -1);
     }
 
-    public CustomViewGroup(Context context, AttributeSet attrs, int defStyleAttr) {
+    public KinshipView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
-        init();
-        System.out.println("===============构造==================");
+        init(context, attrs);
     }
 
-
-    /**
-     * 负责设置子控件的测量模式和大小 根据所有子控件设置自己的宽和高
-     */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int desireHeight = 0;
         int desireWidth = 0;
-        System.out.println("===============onMeasure==================");
         int sizeWidth = MeasureSpec.getSize(widthMeasureSpec);
         int modeWidth = MeasureSpec.getMode(widthMeasureSpec);
         int sizeHeight = MeasureSpec.getSize(heightMeasureSpec);
@@ -82,25 +108,17 @@ public class CustomViewGroup extends ViewGroup {
                 modeHeight == MeasureSpec.EXACTLY ? sizeHeight : desireHeight);
     }
 
-    /**
-     * 管理子View显示的位置
-     */
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         if (totalList.length < 3 || totalList[0].length < 2 || totalList[1].length < 2 || totalList[2].length < 1) {
             return;
         }
 
-        System.out.println("===============onLayout==================");
         int childCount = getChildCount();
-        System.out.println("childCount=========" + childCount);
         for (int i = 0; i < childCount; i++) {
             View childView = getChildAt(i);
             int measuredWidth = childView.getMeasuredWidth();
             int measuredHeight = childView.getMeasuredHeight();
-            System.out.println("width" + i + "===============" + measuredWidth);
-            System.out.println("height" + i + "===============" + measuredHeight);
-
 
             if (i == 0) {//第一行 第一个
                 childView.layout(getMeasuredWidth() / 2 + lineLength2 + measuredWidth / 2 - lineLength1 - measuredWidth, getPaddingTop(),
@@ -115,7 +133,6 @@ public class CustomViewGroup extends ViewGroup {
                 childView.layout(getMeasuredWidth() / 2 + lineLength2, getPaddingTop() + measuredHeight / 2 + lineHeight1,
                         getMeasuredWidth() / 2 + lineLength2 + measuredWidth, getPaddingTop() + measuredHeight / 2 + lineHeight1 + measuredHeight);
             }
-            //===========================================
             if (data3.length > 0 && i > 3) {
                 int middleIndex;
                 if (data3.length % 2 == 0) {//偶数个
@@ -137,20 +154,22 @@ public class CustomViewGroup extends ViewGroup {
         }
     }
 
-    private void init() {
-        lineColor = Color.parseColor("#000000");
-        lineWidth = DensityUtil.dp2px(context, 2.5f);
+    private void init(Context context, AttributeSet attrs) {
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.KinshipView);
+        int lineColor = typedArray.getColor(R.styleable.KinshipView_lineColor, Color.parseColor("#000000"));
+        int lineWidth = (int) typedArray.getDimension(R.styleable.KinshipView_lineWidth, DensityUtil.dp2px(context, 2.5f));
+        lineLength1 = (int) typedArray.getDimension(R.styleable.KinshipView_lineLengthTop, DensityUtil.dp2px(context, 30));
+        lineLength2 = (int) typedArray.getDimension(R.styleable.KinshipView_lineLengthMiddle, DensityUtil.dp2px(context, 60));
+        lineLength3 = (int) typedArray.getDimension(R.styleable.KinshipView_lineLengthBottom, DensityUtil.dp2px(context, 90));
+        lineHeight1 = (int) typedArray.getDimension(R.styleable.KinshipView_lineHeightTop, DensityUtil.dp2px(context, 60));
+        lineHeight2 = (int) typedArray.getDimension(R.styleable.KinshipView_lineHeightMiddle, DensityUtil.dp2px(context, 75));
+        lineHeight3 = (int) typedArray.getDimension(R.styleable.KinshipView_lineHeightBottom, DensityUtil.dp2px(context, 15.5f));
+        typedArray.recycle();
+
         linePaint = new Paint();
         linePaint.setColor(lineColor);
         linePaint.setStyle(Paint.Style.FILL);
         linePaint.setStrokeWidth(lineWidth);
-        lineLength1 = DensityUtil.dp2px(context, 30);
-        lineLength2 = DensityUtil.dp2px(context, 60);
-        lineLength3 = DensityUtil.dp2px(context, 90);
-
-        lineHeight1 = DensityUtil.dp2px(context, 60);
-        lineHeight2 = DensityUtil.dp2px(context, 75);
-        lineHeight3 = DensityUtil.dp2px(context, 15.5f);
 
         WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         DisplayMetrics outMetrics = new DisplayMetrics();
@@ -174,7 +193,6 @@ public class CustomViewGroup extends ViewGroup {
         View childAt1 = getChildAt(1);
         View childAt2 = getChildAt(2);
         View childAt3 = getChildAt(3);
-        System.out.println("===============dispatchDraw==================" + childAt1.getLeft());
         //绘制第一行横线
         canvas.drawLine(childAt0.getRight(),
                 childAt0.getTop() + (childAt0.getHeight() >> 1),
@@ -240,7 +258,6 @@ public class CustomViewGroup extends ViewGroup {
     }
 
     public void setTotalList(String[][] totalList) {
-        System.out.println("===============set==================" + totalList.length);
         this.totalList = totalList;
         if (totalList.length > 2) {
             data3 = totalList[2];
@@ -267,7 +284,6 @@ public class CustomViewGroup extends ViewGroup {
     private void forEachAddView(int row, String[] levelList) {
         if (levelList.length > 0) {
             for (int i = 0; i < levelList.length; i++) {
-                System.out.println("0============" + levelList[i]);
                 addView(row, i, levelList[i]);
             }
         }

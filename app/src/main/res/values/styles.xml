@@ -8,4 +8,15 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <declare-styleable name="KinshipView">
+        <attr name="lineColor" format="color|reference"/>
+        <attr name="lineWidth" format="dimension|reference"/>
+        <attr name="lineLengthTop" format="dimension|reference"/>
+        <attr name="lineHeightTop" format="dimension|reference"/>
+        <attr name="lineLengthMiddle" format="dimension|reference"/>
+        <attr name="lineHeightMiddle" format="dimension|reference"/>
+        <attr name="lineLengthBottom" format="dimension|reference"/>
+        <attr name="lineHeightBottom" format="dimension|reference"/>
+    </declare-styleable>
+
 </resources>
